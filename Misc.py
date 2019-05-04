@@ -35,6 +35,7 @@ class Image:
 
     @staticmethod
     def addBoxes(im, boxes):
+        im = np.array(im)
         for box in boxes:
             if (box.score > Config.box_threshold):
                 im = cv2.rectangle(im, (box.x1, box.y1), (box.x2, box.y2), (0, 255, 0), 2)

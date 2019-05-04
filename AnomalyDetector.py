@@ -28,22 +28,58 @@ class AnomalyEvent:
     def overlapRatio(self, box):
         return self.boxIntersect(self.region, box) / box.area()
 
-    def radiusRestrict(self, box):
-        x1 = (self.region.x1 + self.region.x2) / 2.0
-        y1 = (self.region.y1 + self.region.y2) / 2.0
+    def IoU(self, box1, box2):
+        intersect = self.boxIntersect(box1, box2)
+        union = box1.area() + box2.area() - intersect
+        return intersect / union
+
+    def radiusRestrict(self, pivot, box):
+        x1 = (pivot.x1 + pivot.x2) / 2.0
+        y1 = (pivot.y1 + pivot.y2) / 2.0
         x2 = (box.x1 + box.x2) / 2.0
         y2 = (box.y1 + box.y2) / 2.0
         dist = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
-        radius = (((self.region.x2 - self.region.x1) ** 2 + (self.region.y2 - self.region.y1) ** 2) ** 0.5) / 2 \
-                + (((box.x2 - box.x1) ** 2 + (box.y2 - box.y1) ** 2) ** 0.5) / 2
-        if dist <= radius: return True
-        return False
+        radius = ((((pivot.x2 - pivot.x1) ** 2 + (pivot.y2 - pivot.y1) ** 2) ** 0.5) / 2 \
+                + (((box.x2 - box.x1) ** 2 + (box.y2 - box.y1) ** 2) ** 0.5) / 2) * (4 / 5)
+        if dist <= radius: return True, dist
+        return False, dist
 
     def checkContains(self, box):
-        if (self.overlapRatio(box) > Config.aevent_overlap_ratio) or (self.radiusRestrict(box)):
-            return True
-        else:
-            return False
+        # method 1
+        # if (self.overlapRatio(box) > Config.aevent_overlap_ratio) or (self.radiusRestrict(box)):
+        #     return True
+        # else:
+        #     return False
+
+        # method 2
+        # isInEvent = False
+        # min_dist = 1000000000.0
+        # for event_box in self.boxes:
+        #     allow, dist = self.radiusRestrict(event_box, box)
+        #     if allow:
+        #         isInEvent = True
+        #         if dist < min_dist: min_dist = dist
+        # return isInEvent, min_dist
+
+        # method 3
+        # isInEvent = False
+        # max_dist = -1.0
+        # for event_box in self.boxes:
+        #     IoU = self.IoU(event_box, box)
+        #     if IoU > Config.aevent_iou:
+        #         isInEvent = True
+        #         if IoU > max_dist: max_dist = IoU
+        # return isInEvent, max_dist
+
+        #method 4
+        isInEvent = False
+        max_dist = -1.0
+        for event_box in self.boxes:
+            overlapRatio = self.boxIntersect(event_box, box) / box.area()
+            if overlapRatio > Config.aevent_overlap_ratio:
+                isInEvent = True
+                if overlapRatio > max_dist: max_dist = overlapRatio
+        return isInEvent, max_dist
 
     def expandRegion(self, box):
         self.boxes.append(box)
@@ -64,23 +100,30 @@ class AnomalyDetector:
         self.events = {}  # list of anomaly event
 
     def addBoxes(self, boxes, time):
+        #print('before: ',self.events.keys())
+        #print('len boxes: ', len(boxes))
         for box in boxes:
+            #print('box_score:', box.score)
+            if box.score < Config.box_threshold: continue
+            #print('adding: ', box.x1, box.y1)
             lc = 0
-            max_overlap = -1.0
-            max_event = None
+            max_dist = -1.0
+            pevent = None
             for key in self.events.keys():
                 event = self.events[key]
-                if event.checkContains(box):
+                allow, dist = event.checkContains(box)
+                if allow:
                     lc = 1
-                    if event.overlapRatio(box) > max_overlap:
-                        max_overlap = event.overlapRatio(box)
-                        max_event = event
+                    if max_dist < dist:
+                        max_dist = dist
+                        pevent = event
 
             if lc == 1:
-                max_event.addBox(box, time)
+                pevent.addBox(box, time)
             if lc == 0:
                 self.events[self.nextId] = AnomalyEvent(box, time)
                 self.nextId += 1
+        #print('after: ', self.events.keys())
 
     def examineEvents(self, video_id, scene_id, time, isEnd, file):
         ret = []
@@ -92,15 +135,19 @@ class AnomalyDetector:
                     or isEnd:
                 if event.status == 1: #anomaly event
                     #format: video_id scene_id start_time end_time confident
-                    file.write(str(video_id) + ' ' + str(scene_id) + ' ' + str(event.start_time) + ' ' + str(time) + ' ' + str(event.getConf()) + '\n')
+                    if time - event.latest_update > Config.threshold_anomaly_finish:
+                        file.write(str(video_id) + ' ' + str(scene_id) + ' ' + str(event.start_time) + ' ' + str(event.latest_update + 5) + ' ' + str(event.getConf()) + '\n')
+                    else:
+                        file.write(str(video_id) + ' ' + str(scene_id) + ' ' + str(event.start_time) + ' ' + str(time) + ' ' + str(event.getConf()) + '\n')
                 self.events.pop(key)
             else:
-                if time - event.start_time > Config.threshold_anomaly_least_time:
+                if time - event.start_time > Config.threshold_anomaly_least_time and time - event.latest_update < Config.threshold_anomaly_most_idle:
                     event.status = 1
                     ret.append(event)
         return ret
 
     def drawEvents(self, im):
+        #print(self.events.keys())
         for key in self.events.keys():
             event = self.events[key]
             if event.status == 0:

@@ -20,7 +20,7 @@ anomalyDetector = AnomalyDetector()
 stableList = StableFrameList(Config.data_path + '/unchanged_scene_periods.json')
 maskList = MaskList(Config.data_path + '/masks')
 
-for video_id in range(12, 101):
+for video_id in range(1, 101):
     print("Processing video ", video_id)
     detector = detectorDay
     if detectorNight.checkNight(video_id):
@@ -28,6 +28,7 @@ for video_id in range(12, 101):
     stableIntervals = stableList[video_id]
     print(stableIntervals)
     confs = {}
+    print(detector.name)
 
     #anomaly save file
     if not os.path.exists(Config.output_path + '/' + str(video_id)):
@@ -48,6 +49,8 @@ for video_id in range(12, 101):
         # output: average + boxes, gray_boxes before, gray_boxes after mask
 
         for frame_id in range(sl, sr):
+            #print("Frame ID %d" % (frame_id))
+            #if frame_id == 15: break
             ave_im = Image.load(Config.data_path + '/average_image/' + str(video_id) + '/average' + str(frame_id) + '.jpg')
             boxes = detector.detect(video_id, frame_id)
             #for box in boxes: box.applyMask(sceneMask)
@@ -61,12 +64,13 @@ for video_id in range(12, 101):
 
                 day_box_im = Image.addBoxes(ave_im, day_boxes)
                 Image.save(day_box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/day_average' + format(frame_id, '03d') + '.jpg')
-
-            Image.save(box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/day_average' + format(frame_id, '03d') + '.jpg')
+            else:
+                Image.save(box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/day_average' + format(frame_id, '03d') + '.jpg')
 
             #detect anomaly event in scene
             anomalyDetector.addBoxes(boxes, frame_id) #input detected boxes => list of anomaly event
             detectedAnomalyEvents = anomalyDetector.examineEvents(video_id, scene_id, frame_id, frame_id == sr - 1, f)
+
             event_im = anomalyDetector.drawEvents(box_im)
 
             Image.save(event_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/events' + format(frame_id, '03d') + '.jpg')
@@ -81,6 +85,7 @@ for video_id in range(12, 101):
     plt.plot(confs.keys(), [confs[key] for key in confs.keys()])
     # plt.show()
     f.savefig(Config.output_path + '/' + str(video_id) + '/' + str(video_id) + '_anomaly.pdf', bbox_inches='tight')
+    plt.close(f)
     f = open(Config.output_path + '/' + str(video_id) + '/' + str(video_id) + '_anomaly.txt', 'w')
     for key in confs.keys():
         f.write(str(key) + ' ' + str(confs[key]) + '\n')
