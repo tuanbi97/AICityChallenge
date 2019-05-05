@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from Misc import BoundingBox
+from Misc import BoundingBox, Image
 import Config
 
 class AnomalyEvent:
@@ -82,12 +82,25 @@ class AnomalyEvent:
         return isInEvent, max_dist
 
     def expandRegion(self, box):
-        self.boxes.append(box)
+        needNew = True
+        maxBox = None
+        maxIoU = 0
+        for abox in self.boxes:
+            iou = self.IoU(abox, box)
+            if iou > Config.threshold_join_box:
+                needNew = False
+                if iou > maxIoU:
+                    maxIoU = iou
+                    maxBox = abox
+        if needNew:
+            self.boxes.append(box)
+        else:
+            maxBox.expand(box)
         self.region.x1 = min(self.region.x1, box.x1)
         self.region.y1 = min(self.region.y1, box.y1)
         self.region.x2 = max(self.region.x2, box.x2)
         self.region.y2 = max(self.region.y2, box.y2)
-        self.region.score = 1.0 - (1.0 - self.region.score) * (1.0 - box.score)
+        self.region.score = Image.calcConfident(self.boxes)
 
     def addBox(self, box, time):
         self.expandRegion(box)
@@ -144,7 +157,8 @@ class AnomalyDetector:
                 if time - event.start_time > Config.threshold_anomaly_least_time and time - event.latest_update < Config.threshold_anomaly_most_idle:
                     event.status = 1
                     ret.append(event)
-        return ret
+        currentConf = Image.calcFrameConfident(self.events)
+        return ret, currentConf
 
     def drawEvents(self, im):
         #print(self.events.keys())

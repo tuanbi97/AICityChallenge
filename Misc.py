@@ -16,6 +16,13 @@ class BoundingBox:
     def area(self):
         return (self.x2 - self.x1) * (self.y2 - self.y1)
 
+    def expand(self, box):
+        self.x1 = min(self.x1, box.x1)
+        self.y1 = min(self.y1, box.y1)
+        self.x2 = max(self.x2, box.x2)
+        self.y2 = max(self.y2, box.y2)
+        self.score = 1.0 - (1.0 - self.score) * (1.0 - box.score)
+
 class Image:
 
     @staticmethod
@@ -31,6 +38,16 @@ class Image:
             if box.score > Config.box_threshold:
                 conf *= (1.0 - box.score)
         conf = 1 - conf
+        return conf
+
+    @staticmethod
+    def calcFrameConfident(events):
+        conf = 1.0
+        for key in events.keys():
+            event = events[key]
+            if event.status:
+                conf *= (1.0 - event.region.score)
+        conf = 1.0 - conf
         return conf
 
     @staticmethod

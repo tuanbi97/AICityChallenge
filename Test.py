@@ -20,7 +20,7 @@ anomalyDetector = AnomalyDetector()
 stableList = StableFrameList(Config.data_path + '/unchanged_scene_periods.json')
 maskList = MaskList(Config.data_path + '/masks')
 
-for video_id in range(1, 101):
+for video_id in range(2, 101):
     print("Processing video ", video_id)
     detector = detectorDay
     if detectorNight.checkNight(video_id):
@@ -69,13 +69,11 @@ for video_id in range(1, 101):
 
             #detect anomaly event in scene
             anomalyDetector.addBoxes(boxes, frame_id) #input detected boxes => list of anomaly event
-            detectedAnomalyEvents = anomalyDetector.examineEvents(video_id, scene_id, frame_id, frame_id == sr - 1, f)
+            detectedAnomalyEvents, conf = anomalyDetector.examineEvents(video_id, scene_id, frame_id, frame_id == sr - 1, f)
 
             event_im = anomalyDetector.drawEvents(box_im)
 
             Image.save(event_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/events' + format(frame_id, '03d') + '.jpg')
-
-            conf = Image.calcConfident(boxes)
             confs[frame_id] = conf
 
     f.close()
