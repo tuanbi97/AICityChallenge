@@ -78,16 +78,18 @@ class DayNightDetector:
         self.initialize()
 
     def initialize(self):
-        fig_size = plt.rcParams["figure.figsize"]
-        fig_size[0] = 16
-        fig_size[1] = 5
-        plt.rcParams["figure.figsize"] = fig_size
+        # fig_size = plt.rcParams["figure.figsize"]
+        # fig_size[0] = 14
+        # fig_size[1] = 5
+        # plt.rcParams["figure.figsize"] = fig_size
+        f = open('gt.txt', 'r')
+        cc = []
         for video_id in range(1, 101):
             print(video_id)
-            image = cv2.cvtColor(Image.load(self.video_path + '/' + str(video_id) + '/average1.jpg'), cv2.COLOR_BGR2RGB)
-            image = image[:image.shape[0] // 3, :]
-            w = image.shape[1] // 4
-            h = image.shape[0] // 4
+            image = cv2.cvtColor(Image.load(self.video_path + '/' + str(video_id) + '/average10.jpg'), cv2.COLOR_BGR2RGB)
+            image = image[: int(image.shape[0] / 2), :]
+            w = image.shape[1] // 5
+            h = image.shape[0] // 5
             image = cv2.resize(image, (w, h))
             hsvIm = np.array(image)
             for i in range(0, image.shape[0]):
@@ -99,31 +101,52 @@ class DayNightDetector:
 
             hBin = 360
             vBin = 255
-            hHist, hX = np.histogram(hsvIm[:, :, 0].flatten(), hBin, (0, 360))
+            hHist, hX = np.histogram([hsvIm[x][y][0] for x in range(0, h) for y in range(0, w) if hsvIm[x][y][1] < 175], hBin, (0, 360))
+            #hHist, hX = np.histogram(hsvIm[:, :, 0].flatten(), hBin, (0, 360))
             vHist, vX = np.histogram(hsvIm[:, :, 2].flatten(), vBin, (0, 255))
 
             nH = (np.sum(hHist[0: 72]) + np.sum(hHist[288: ])) / (h * w)
-            nV = np.sum(vHist[150:]) / (h * w)
+            nV = np.sum(vHist[124:]) / (h * w)
+
 
             print(nH, nV)
-            result = 'day'
-            if nH < 0.1 or nV > 0.16:
-                print('day')
-                if nV > 0.05:
-                    result = 'day'
-                else:
-                    result = 'night'
-            else:
-                print('night')
-                result = 'night'
 
-            fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-            ax1.plot(hX[:-1], hHist, color='r')
-            #ax1.plot(_[:-1], sHist, color='g')
-            ax2.plot(vX[:-1], vHist, color='b')
-            ax3.set_title(result)
-            ax3.imshow(image)
-            plt.show()
+            if nV < 0.289:
+                result = 'night'
+            else:
+                result = 'day'
+            gt = f.readline()[:-1]
+            print(result, gt)
+            #result = gt
+            cc.append((nH, nV, gt))
+
+            # if nH < 0.654 and nH > 0.04:
+            #     if nV > 0.126 and nV < 0.197:
+            #         result = 'day'
+            #     else:
+            #         result = 'night'
+            # else:
+            #     if nV > 0.108:
+            #         if nH < 0.57:
+            #             result = 'day'
+            #         else:
+            #             result = 'night'
+            #     else:
+            #         result = 'night'
+
+            # if (result != gt):
+            #     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+            #     ax1.plot(hX[:-1], hHist, color='r')
+            #     #ax1.plot(_[:-1], sHist, color='g')
+            #     ax2.plot(vX[:-1], vHist, color='b')
+            #     ax3.set_title(result)
+            #     ax3.imshow(image)
+            #     plt.show()
+        dayList = [x for x in cc if (x[2] == 'day')]
+        nightList = [x for x in cc if (x[2] == 'night')]
+        plt.scatter([x[0] for x in dayList], [x[1] for x in dayList], c = 'r')
+        plt.scatter([x[0] for x in nightList], [x[1] for x in nightList], c = 'b')
+        plt.show()
 
 if __name__ == '__main__':
     # detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt')
