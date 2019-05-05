@@ -1,10 +1,11 @@
 import numpy as  np
-from Misc import BoundingBox
+from Misc import BoundingBox, Image
 import Config
 import os
 import pickle
 import cv2
 import matplotlib.pyplot as plt
+import colour
 
 #input detected bounding boxes
 #get result by function detect
@@ -69,20 +70,77 @@ class DetectorNight:
     def checkNight(self, video_id):
         return (self.night_videos[video_id] == 1)
 
+class DayNightDetector:
+
+    def __init__(self):
+        self.night_videos = np.zeros(101, np.int)
+        self.video_path = Config.data_path + '/average_image'
+        self.initialize()
+
+    def initialize(self):
+        fig_size = plt.rcParams["figure.figsize"]
+        fig_size[0] = 16
+        fig_size[1] = 5
+        plt.rcParams["figure.figsize"] = fig_size
+        for video_id in range(1, 101):
+            print(video_id)
+            image = cv2.cvtColor(Image.load(self.video_path + '/' + str(video_id) + '/average1.jpg'), cv2.COLOR_BGR2RGB)
+            image = image[:image.shape[0] // 3, :]
+            w = image.shape[1] // 4
+            h = image.shape[0] // 4
+            image = cv2.resize(image, (w, h))
+            hsvIm = np.array(image)
+            for i in range(0, image.shape[0]):
+                for j in range(0, image.shape[1]):
+                    rgb = image[i][j] / 255.0
+                    hsv = colour.RGB_to_HSV(rgb)
+                    hsv = [int(hsv[0] * 360), int(hsv[1] * 255), int(hsv[2] * 255)]
+                    hsvIm[i][j] = hsv
+
+            hBin = 360
+            vBin = 255
+            hHist, hX = np.histogram(hsvIm[:, :, 0].flatten(), hBin, (0, 360))
+            vHist, vX = np.histogram(hsvIm[:, :, 2].flatten(), vBin, (0, 255))
+
+            nH = (np.sum(hHist[0: 72]) + np.sum(hHist[288: ])) / (h * w)
+            nV = np.sum(vHist[150:]) / (h * w)
+
+            print(nH, nV)
+            result = 'day'
+            if nH < 0.1 or nV > 0.16:
+                print('day')
+                if nV > 0.05:
+                    result = 'day'
+                else:
+                    result = 'night'
+            else:
+                print('night')
+                result = 'night'
+
+            fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+            ax1.plot(hX[:-1], hHist, color='r')
+            #ax1.plot(_[:-1], sHist, color='g')
+            ax2.plot(vX[:-1], vHist, color='b')
+            ax3.set_title(result)
+            ax3.imshow(image)
+            plt.show()
+
 if __name__ == '__main__':
-    detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt')
-    #detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos')
-    detector = detectorDay
-    video_id = 100
-    img_paths = os.listdir(Config.data_path + '/average_image/' + str(video_id))
-    for i in range(0, len(img_paths)):
-        print(img_paths[i])
-        im = cv2.cvtColor(cv2.imread(Config.data_path + '/average_image/' + str(video_id) +'/' + img_paths[i]), cv2.COLOR_BGR2RGB)
-        frame_id = int(img_paths[i][7: -4])
-        boxes = detector.detect(video_id, frame_id)
-        for j in range(0, len(boxes)):
-            if (boxes[j].score > 0.5):
-                im = cv2.rectangle(im, (boxes[j].x1, boxes[j].y1), (boxes[j].x2, boxes[j].y2), (0, 255, 0), 3)
-                im = cv2.putText(im, "%.2f" % (boxes[j].score), (boxes[j].x1, boxes[j].y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
-                plt.imshow(im)
-        plt.show()
+    # detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt')
+    # #detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos')
+    # detector = detectorDay
+    # video_id = 100
+    # img_paths = os.listdir(Config.data_path + '/average_image/' + str(video_id))
+    # for i in range(0, len(img_paths)):
+    #     print(img_paths[i])
+    #     im = cv2.cvtColor(cv2.imread(Config.data_path + '/average_image/' + str(video_id) +'/' + img_paths[i]), cv2.COLOR_BGR2RGB)
+    #     frame_id = int(img_paths[i][7: -4])
+    #     boxes = detector.detect(video_id, frame_id)
+    #     for j in range(0, len(boxes)):
+    #         if (boxes[j].score > 0.5):
+    #             im = cv2.rectangle(im, (boxes[j].x1, boxes[j].y1), (boxes[j].x2, boxes[j].y2), (0, 255, 0), 3)
+    #             im = cv2.putText(im, "%.2f" % (boxes[j].score), (boxes[j].x1, boxes[j].y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+    #             plt.imshow(im)
+    #     plt.show()
+
+    dayNightDetector = DayNightDetector()
