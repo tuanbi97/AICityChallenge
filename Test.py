@@ -18,9 +18,9 @@ detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos'
 #evalFunc = Evaluation(Config.data_path + '/test_groundtruth.txt')
 anomalyDetector = AnomalyDetector()
 stableList = StableFrameList(Config.data_path + '/unchanged_scene_periods.json')
-maskList = MaskList(Config.data_path + '/masks')
+maskList = MaskList(Config.data_path + '/refine_masks')
 
-for video_id in range(2, 101):
+for video_id in range(14, 101):
     print("Processing video ", video_id)
     detector = detectorDay
     if detectorNight.checkNight(video_id):
@@ -53,7 +53,7 @@ for video_id in range(2, 101):
             #if frame_id == 15: break
             ave_im = Image.load(Config.data_path + '/average_image/' + str(video_id) + '/average' + str(frame_id) + '.jpg')
             boxes = detector.detect(video_id, frame_id)
-            #for box in boxes: box.applyMask(sceneMask)
+            for box in boxes: box.applyMask(sceneMask)
 
             box_im = Image.addBoxes(ave_im, boxes)
 

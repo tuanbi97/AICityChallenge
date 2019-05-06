@@ -14,11 +14,14 @@ class MaskList:
         return mask
 
 if __name__ == '__main__':
-    list = MaskList(Config.data_path + '/masks')
-    mask = list[(1, 1)]
+    list = MaskList(Config.data_path + '/refine_masks')
+    video_id = 27
+    mask = list[(video_id, 1)]
     mask = (mask * 255).astype(int)
     mask = np.dstack((mask, mask, mask))
-    im = cv2.cvtColor(Image.load(Config.data_path + '/average_image/1/average145.jpg'), cv2.COLOR_BGR2RGB)
-    im = cv2.addWeighted(im.astype(int), 1, mask, 0.3, 0.0)
-    plt.imshow(im)
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    ax1.imshow(mask)
+    im = cv2.cvtColor(Image.load(Config.data_path + '/average_image/' + str(video_id) + '/average145.jpg'), cv2.COLOR_BGR2RGB)
+    im = cv2.addWeighted(im.astype(int), 1, mask, 0.4, 0.0)
+    ax2.imshow(im)
     plt.show()

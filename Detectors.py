@@ -86,6 +86,7 @@ class DayNightDetector:
         cc = []
         for video_id in range(1, 101):
             print(video_id)
+
             image = cv2.cvtColor(Image.load(self.video_path + '/' + str(video_id) + '/average10.jpg'), cv2.COLOR_BGR2RGB)
             image = image[: int(image.shape[0] / 2), :]
             w = image.shape[1] // 5
@@ -101,8 +102,8 @@ class DayNightDetector:
 
             hBin = 360
             vBin = 255
-            hHist, hX = np.histogram([hsvIm[x][y][0] for x in range(0, h) for y in range(0, w) if hsvIm[x][y][1] < 175], hBin, (0, 360))
-            #hHist, hX = np.histogram(hsvIm[:, :, 0].flatten(), hBin, (0, 360))
+            #hHist, hX = np.histogram([hsvIm[x][y][0] for x in range(0, h) for y in range(0, w) if hsvIm[x][y][1] < 125], hBin, (0, 360))
+            hHist, hX = np.histogram(hsvIm[:, :, 0].flatten(), hBin, (0, 360))
             vHist, vX = np.histogram(hsvIm[:, :, 2].flatten(), vBin, (0, 255))
 
             nH = (np.sum(hHist[0: 72]) + np.sum(hHist[288: ])) / (h * w)
