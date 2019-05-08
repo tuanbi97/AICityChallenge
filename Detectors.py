@@ -75,7 +75,16 @@ class DayNightDetector:
     def __init__(self):
         self.night_videos = np.zeros(101, np.int)
         self.video_path = Config.data_path + '/average_image'
-        self.initialize()
+        #self.initialize()
+        self.temp_initialize()
+
+    def temp_initialize(self):
+        nights = [2, 4, 7, 10, 22, 34, 36, 37, 42, 44, 50, 53, 59, 61, 62, 63, 66, 73, 74, 77, 94]
+        for video_id in nights:
+            self.night_videos[video_id] = 1
+
+    def checkNight(self, video_id):
+        return (self.night_videos[video_id] == 1)
 
     def initialize(self):
         # fig_size = plt.rcParams["figure.figsize"]

@@ -4,7 +4,8 @@ from Misc import BoundingBox, Image
 import Config
 
 class AnomalyEvent:
-    def __init__(self, box, time):
+    def __init__(self, box, time, id):
+        self.id = id
         self.region = box
         self.start_time = time
         self.latest_update = time
@@ -111,6 +112,7 @@ class AnomalyDetector:
     def __init__(self):
         self.nextId = 0
         self.events = {}  # list of anomaly event
+        self.prevEvents = {}
 
     def addBoxes(self, boxes, time):
         #print('before: ',self.events.keys())
@@ -134,29 +136,59 @@ class AnomalyDetector:
             if lc == 1:
                 pevent.addBox(box, time)
             if lc == 0:
-                self.events[self.nextId] = AnomalyEvent(box, time)
+                self.events[self.nextId] = AnomalyEvent(box, time, self.nextId)
                 self.nextId += 1
         #print('after: ', self.events.keys())
 
     def examineEvents(self, video_id, scene_id, time, isEnd, file):
         ret = []
         keys = [key for key in self.events.keys()]
+        temp = {}
         for key in keys:
             event = self.events[key]
-            if time - event.latest_update > Config.threshold_anomaly_finish \
-                    or (time > event.start_time and event.count / (time - event.start_time) < Config.threshold_anomaly_freq) \
-                    or isEnd:
+            if (time - event.latest_update > Config.threshold_anomaly_finish \
+                    or (time > event.start_time and event.count / (time - event.start_time) < Config.threshold_anomaly_freq)) and isEnd == False:
                 if event.status == 1: #anomaly event
                     #format: video_id scene_id start_time end_time confident
-                    if time - event.latest_update > Config.threshold_anomaly_finish:
-                        file.write(str(video_id) + ' ' + str(scene_id) + ' ' + str(event.start_time) + ' ' + str(event.latest_update + 5) + ' ' + str(event.getConf()) + '\n')
-                    else:
-                        file.write(str(video_id) + ' ' + str(scene_id) + ' ' + str(event.start_time) + ' ' + str(time) + ' ' + str(event.getConf()) + '\n')
+                    file.write(str(video_id) + ' ' + str(scene_id) + ' ' + str(event.start_time) + ' ' + str(event.latest_update) + ' ' + str(event.getConf()) + '\n')
                 self.events.pop(key)
             else:
-                if time - event.start_time > Config.threshold_anomaly_least_time and time - event.latest_update < Config.threshold_anomaly_most_idle:
-                    event.status = 1
-                    ret.append(event)
+                if time - event.latest_update < Config.threshold_anomaly_most_idle:
+                    if event.status == 0 and time - event.start_time < Config.threshold_anomaly_least_time and time - event.start_time > Config.threshold_proposal_least_time:
+                        minStartTime = event.start_time
+                        for pKey in self.prevEvents.keys():
+                            pEvent = self.prevEvents[pKey]
+                            if event.start_time - pEvent.latest_update < Config.threshold_proposal_merge:
+                                minStartTime = min(minStartTime, pEvent.start_time)
+                        event.start_time = minStartTime
+                    if time - event.start_time > Config.threshold_anomaly_least_time:
+                        event.status = 1
+                        ret.append(event)
+
+
+            if isEnd:
+                if event.status == 1: #anomaly event
+                    #format: video_id scene_id start_time end_time confident
+                    file.write(str(video_id) + ' ' + str(scene_id) + ' ' + str(event.start_time) + ' ' + str(time) + ' ' + str(event.getConf()) + '\n')
+                else:
+                    #update previous events for next scene
+                    minStartTime = event.start_time
+                    for pKey in self.prevEvents.keys():
+                        pEvent = self.prevEvents[pKey]
+                        if event.start_time - pEvent.latest_update < Config.threshold_proposal_merge:
+                            minStartTime = min(minStartTime, pEvent.start_time)
+                    event.start_time = minStartTime
+                    if time - event.start_time > Config.threshold_anomaly_least_time:
+                        event.status = 1
+                        ret.append(event)
+                    else:
+                        temp[event.id] = event
+
+                self.events.pop(key)
+
+        if isEnd:
+            self.prevEvents = temp
+
         currentConf = Image.calcFrameConfident(self.events)
         return ret, currentConf
 

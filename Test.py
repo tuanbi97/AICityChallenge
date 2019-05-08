@@ -3,27 +3,29 @@ import matplotlib.pyplot as plt
 import json
 import cv2
 import os
-from Detectors import DetectorDay, DetectorNight
+from Detectors import DetectorDay, DetectorNight, DayNightDetector
 import Config
 from Evaluation import Evaluation
 from StableFrameList import StableFrameList
 from MaskList import MaskList
 from Misc import Image
 from AnomalyDetector import AnomalyDetector
+import ResultRefinement as rr
 
 #Initilize detector
 print('Parse detector result ...')
+dayNightDetector = DayNightDetector()
 detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt')
 detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos')
 #evalFunc = Evaluation(Config.data_path + '/test_groundtruth.txt')
 anomalyDetector = AnomalyDetector()
-stableList = StableFrameList(Config.data_path + '/unchanged_scene_periods.json')
-maskList = MaskList(Config.data_path + '/refine_masks')
+stableList = StableFrameList(Config.data_path + '/unchanged_scenes_3.json')
+maskList = MaskList(Config.data_path + '/masks_refine')
 
-for video_id in range(14, 101):
+for video_id in range(1, 101):
     print("Processing video ", video_id)
     detector = detectorDay
-    if detectorNight.checkNight(video_id):
+    if dayNightDetector.checkNight(video_id):
         detector = detectorNight
     stableIntervals = stableList[video_id]
     print(stableIntervals)
@@ -60,7 +62,7 @@ for video_id in range(14, 101):
             if detector.name == 'night':
                 Image.save(box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/night_average' + format(frame_id, '03d') + '.jpg')
                 day_boxes = detectorDay.detect(video_id, frame_id)
-                #for box in day_boxes: box.applyMask(sceneMask)
+                for box in day_boxes: box.applyMask(sceneMask)
 
                 day_box_im = Image.addBoxes(ave_im, day_boxes)
                 Image.save(day_box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/day_average' + format(frame_id, '03d') + '.jpg')
@@ -89,4 +91,4 @@ for video_id in range(14, 101):
         f.write(str(key) + ' ' + str(confs[key]) + '\n')
     f.close()
 
-#final result
+rr.refineResult(Config.output_path)
