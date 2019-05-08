@@ -50,7 +50,7 @@ def refineResult(output_path):
 
         for i in range(0, len(intervals)):
             if (check[i] == 0):
-                f.write("%d %.2f %.2f\n" % (video_id, intervals[i].l, intervals[i].score))
+                f.write("%d %.2f %.2f\n" % (video_id, max(intervals[i].l - 2, 0), intervals[i].score))
 
     f.close()
 

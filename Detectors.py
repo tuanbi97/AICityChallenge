@@ -159,21 +159,21 @@ class DayNightDetector:
         plt.show()
 
 if __name__ == '__main__':
-    # detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt')
-    # #detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos')
-    # detector = detectorDay
-    # video_id = 100
-    # img_paths = os.listdir(Config.data_path + '/average_image/' + str(video_id))
-    # for i in range(0, len(img_paths)):
-    #     print(img_paths[i])
-    #     im = cv2.cvtColor(cv2.imread(Config.data_path + '/average_image/' + str(video_id) +'/' + img_paths[i]), cv2.COLOR_BGR2RGB)
-    #     frame_id = int(img_paths[i][7: -4])
-    #     boxes = detector.detect(video_id, frame_id)
-    #     for j in range(0, len(boxes)):
-    #         if (boxes[j].score > 0.5):
-    #             im = cv2.rectangle(im, (boxes[j].x1, boxes[j].y1), (boxes[j].x2, boxes[j].y2), (0, 255, 0), 3)
-    #             im = cv2.putText(im, "%.2f" % (boxes[j].score), (boxes[j].x1, boxes[j].y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
-    #             plt.imshow(im)
-    #     plt.show()
+    detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_nclas.txt')
+    #detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos')
+    detector = detectorDay
+    video_id = 6
+    img_paths = os.listdir(Config.data_path + '/average_image/' + str(video_id))
+    for i in range(0, len(img_paths)):
+        print(i)
+        im = cv2.cvtColor(cv2.imread(Config.data_path + '/average_image/' + str(video_id) +'/average' + str(i + 1) + '.jpg'), cv2.COLOR_BGR2RGB)
+        frame_id = int(img_paths[i][7: -4])
+        boxes = detector.detect(video_id, frame_id)
+        for j in range(0, len(boxes)):
+            if (boxes[j].score > 0.5):
+                im = cv2.rectangle(im, (boxes[j].x1, boxes[j].y1), (boxes[j].x2, boxes[j].y2), (0, 255, 0), 3)
+                im = cv2.putText(im, "%.2f" % (boxes[j].score), (boxes[j].x1, boxes[j].y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+                plt.imshow(im)
+        plt.show()
 
-    dayNightDetector = DayNightDetector()
+    #dayNightDetector = DayNightDetector()

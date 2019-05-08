@@ -19,7 +19,7 @@ detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt')
 detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos')
 #evalFunc = Evaluation(Config.data_path + '/test_groundtruth.txt')
 anomalyDetector = AnomalyDetector()
-stableList = StableFrameList(Config.data_path + '/unchanged_scenes_3.json')
+stableList = StableFrameList(Config.data_path + '/unchanged_scene_3.json')
 maskList = MaskList(Config.data_path + '/masks_refine')
 
 for video_id in range(1, 101):
