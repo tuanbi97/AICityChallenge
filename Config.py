@@ -1,6 +1,8 @@
 #data_path = 'E:/Thesis/BackupPlan/Data'
-data_path = 'E:/APCS/Thesis/Codes/Data'
-dataset_path = 'E:/Datasets/aic19-track3-test-data'
+#data_path = 'E:/APCS/Thesis/Codes/Data'
+data_path = '/media/tuanbi97/Vesty/Thesis/BackupPlan/Data'
+dataset_path = '/media/tuanbi97/Vesty/Datasets/aic19-track3-test-data'
+#dataset_path = 'E:/Datasets/aic19-track3-test-data'
 fps = 30
 output_path = data_path + '/output5'
 
