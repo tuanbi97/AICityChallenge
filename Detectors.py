@@ -162,12 +162,13 @@ if __name__ == '__main__':
     detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_nclas.txt')
     #detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos')
     detector = detectorDay
-    video_id = 6
+    video_id = 96
+    start_frame = 140
     img_paths = os.listdir(Config.data_path + '/average_image/' + str(video_id))
-    for i in range(0, len(img_paths)):
+    for i in range(start_frame, len(img_paths)):
         print(i)
         im = cv2.cvtColor(cv2.imread(Config.data_path + '/average_image/' + str(video_id) +'/average' + str(i + 1) + '.jpg'), cv2.COLOR_BGR2RGB)
-        frame_id = int(img_paths[i][7: -4])
+        frame_id = i + 1
         boxes = detector.detect(video_id, frame_id)
         for j in range(0, len(boxes)):
             if (boxes[j].score > 0.5):
