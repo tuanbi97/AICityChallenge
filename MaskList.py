@@ -17,7 +17,7 @@ if __name__ == '__main__':
     list = MaskList(Config.data_path + '/masks_refine_v3')
     video_id = 77
     scene_id = 1
-    frame_id = 56
+    frame_id = 51
     mask = list[(video_id, 1)]
     mask = (mask * 255).astype(int)
     mask = np.dstack((mask, mask, mask))

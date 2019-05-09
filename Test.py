@@ -27,6 +27,9 @@ for video_id in range(77, 78):
     detector = detectorDay
     if dayNightDetector.checkNight(video_id):
         detector = detectorNight
+
+    if (detector.name == 'night'):
+        Config.threshold_anomaly_least_time = 100
     stableIntervals = stableList[video_id]
     print(stableIntervals)
     confs = {}
