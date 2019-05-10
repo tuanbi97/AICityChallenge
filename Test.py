@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import json
 import cv2
 import os
-from Detectors import DetectorDay, DetectorNight, DayNightDetector
+from Detectors import DetectorDay, DetectorNight, DayNightDetector, JapDetector
 import Config
 from Evaluation import Evaluation
 from StableFrameList import StableFrameList
@@ -15,21 +15,20 @@ import ResultRefinement as rr
 #Initilize detector
 print('Parse detector result ...')
 dayNightDetector = DayNightDetector()
-detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt')
+detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt', Config.data_path + '/result_8_3_3_nclas.txt')
 detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos')
 #evalFunc = Evaluation(Config.data_path + '/test_groundtruth.txt')
 anomalyDetector = AnomalyDetector()
 stableList = StableFrameList(Config.data_path + '/unchanged_scene_periods.json')
 maskList = MaskList(Config.data_path + '/masks_refine_v3')
 
-for video_id in range(77, 78):
+for video_id in range(78, 79):
     print("Processing video ", video_id)
     detector = detectorDay
     if dayNightDetector.checkNight(video_id):
         detector = detectorNight
 
-    if (detector.name == 'night'):
-        Config.threshold_anomaly_least_time = 100
+    detector = JapDetector(Config.data_path + '/bbox_detector1.json', Config.data_path + '/All_videos_Japanese_Deep_Driving.json')
     stableIntervals = stableList[video_id]
     print(stableIntervals)
     confs = {}
@@ -57,7 +56,7 @@ for video_id in range(77, 78):
             #print("Frame ID %d" % (frame_id))
             #if frame_id == 15: break
             ave_im = Image.load(Config.data_path + '/average_image/' + str(video_id) + '/average' + str(frame_id) + '.jpg')
-            boxes = detector.detect(video_id, frame_id)
+            boxes = detector.detect(video_id, frame_id * 10)
             for box in boxes: box.applyMask(sceneMask)
 
             box_im = Image.addBoxes(ave_im, boxes)

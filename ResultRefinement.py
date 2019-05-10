@@ -1,5 +1,6 @@
 import Config
 import numpy as np
+import json
 
 class Interval:
 
@@ -24,6 +25,8 @@ class Interval:
 def refineResult(output_path):
     #final result
     #Merge overlapped region
+    with open(Config.data_path + '/stop_scene_periods.json', 'r') as f:
+        stops = json.load(f)
     f = open(output_path + '/result_all.txt', 'w')
     for video_id in range(1, 100):
         g = open(output_path + '/' + str(video_id) + '/anomaly_events.txt')
@@ -48,9 +51,23 @@ def refineResult(output_path):
                             intervals[i].expand(intervals[j])
                             check[j] = 1
 
+        minv = 1000.0
+        scorev = 0
         for i in range(0, len(intervals)):
             if (check[i] == 0):
-                f.write("%d %.2f %.2f\n" % (video_id, max(intervals[i].l - 2, 0), intervals[i].score))
+                lc = 0
+                for j in range(0, len(stops[str(video_id)])):
+                    stop = stops[str(video_id)][j]
+                    if intervals[i].l > stop[0] - 20 and intervals[i].l < stop[1] + 20:
+                        lc = 1
+                        break
+                if lc == 0:
+                    if minv > max(intervals[i].l - Config.start_offset, 0):
+                        minv = max(intervals[i].l - Config.start_offset, 0)
+                        scorev = intervals[i].score
+
+        if (minv < 1000):
+            f.write("%d %.2f %.2f\n" % (video_id, minv, scorev))
 
     f.close()
 

@@ -1,5 +1,6 @@
 #data_path = 'E:/Thesis/BackupPlan/Data'
 #data_path = 'E:/APCS/Thesis/Codes/Data'
+data_path1 = '/media/tuanbi97/Tuanbi97/APCS/Thesis/Codes/AICityChallenge2018_rank2/py-faster-rcnn/data'
 data_path = '/media/tuanbi97/Vesty/Thesis/BackupPlan/Data'
 dataset_path = '/media/tuanbi97/Vesty/Datasets/aic19-track3-test-data'
 #dataset_path = 'E:/Datasets/aic19-track3-test-data'
@@ -18,3 +19,5 @@ threshold_join_box = 0.7
 threshold_proposal_least_time = 30
 threshold_proposal_merge = 20
 threshold_anomaly_merge = 30
+
+start_offset = 10
