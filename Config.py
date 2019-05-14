@@ -13,7 +13,7 @@ aevent_iou = 0.2
 threshold_anomaly_finish = 23
 threshold_anomaly_most_idle = 10
 threshold_anomaly_freq = 0.4
-threshold_anomaly_least_time = 70
+threshold_anomaly_least_time = 60
 threshold_join_box = 0.7
 
 threshold_proposal_least_time = 30

@@ -272,9 +272,9 @@ if __name__ == '__main__':
     #
     # #detector = JapDetector2(Config.data_path + '/bbox_detector2.json', Config.data_path + '/All_videos_Japanese_Deep_Driving_2.json')
 
-    detectorDay = DetectorDay(Config.data_path + '/32_result_8_3_3_nclas.txt', Config.data_path + '/32_result_8_3_3_nclas.txt')
+    detectorDay = DetectorDay(Config.data_path + '/32.txt', Config.data_path + '/32_result_8_3_3_nclas.txt')
     detector = detectorDay
-    f = open(Config.data_path + '/32_result_8_3_3_nclas.txt')
+    f = open(Config.data_path + '/32.txt')
     lines = f.readlines()
     for lines in lines:
         im_name = lines.split(' ')[0]

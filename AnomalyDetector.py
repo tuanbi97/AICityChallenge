@@ -10,7 +10,7 @@ class AnomalyEvent:
         self.start_time = time
         self.latest_update = time
         self.boxes = [box] #list of bounding box in anomaly event
-        self.count = 1 #appear times
+        self.count = 1 #freq
         self.status = 0 #0 / 1 = suspect / anomaly
 
     def getConf(self):
