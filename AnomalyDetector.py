@@ -10,7 +10,7 @@ class AnomalyEvent:
         self.start_time = time
         self.latest_update = time
         self.boxes = [box] #list of bounding box in anomaly event
-        self.count = 1 #appear times
+        self.count = 1 #freq
         self.status = 0 #0 / 1 = suspect / anomaly
 
     def getConf(self):
@@ -150,7 +150,7 @@ class AnomalyDetector:
                     or (time > event.start_time and event.count / (time - event.start_time) < Config.threshold_anomaly_freq)) and isEnd == False:
                 if event.status == 1: #anomaly event
                     #format: video_id scene_id start_time end_time confident
-                    file.write(str(video_id) + ' ' + str(scene_id) + ' ' + str(event.start_time) + ' ' + str(event.latest_update) + ' ' + str(event.getConf()) + '\n')
+                    file.write(str(video_id) + ' ' + str(scene_id) + ' ' + str(event.start_time) + ' ' + str(time) + ' ' + str(event.getConf()) + '\n')
                 self.events.pop(key)
             else:
                 if time - event.latest_update < Config.threshold_anomaly_most_idle:
