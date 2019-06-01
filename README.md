@@ -9,6 +9,8 @@ Extract Unchanged Scenes: `Scene-Change-Stop-Detection`
 
 Training Retina Net: `Detectron`
 
+Preprocessing data: _Uploading_
+
 **Testing**
 
 To reduce the testing time: 
