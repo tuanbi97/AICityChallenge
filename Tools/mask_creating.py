@@ -105,16 +105,16 @@ def extractMask(video_id):
 
             np.save('masks_refine_non_expand/mask_%d_%d.npy' %(vid, scenes_id), mask)
 
-            # for count in range(2):
-            #     mask2 = np.zeros_like(mask)
-            #     for i in range(1, mask.shape[0] - 1):
-            #         for j in range(1, mask.shape[1] - 1):
-            #             mask2[i,j] = max([mask[i-1,j], mask[i,j], mask[i+1,j],
-            #                   mask[i-1,j-1], mask[i,j-1], mask[i+1,j-1],
-            #                   mask[i-1,j+1], mask[i,j+1], mask[i+1,j+1]])
-            #     mask = mask2
+            for count in range(2):
+                mask2 = np.zeros_like(mask)
+                for i in range(1, mask.shape[0] - 1):
+                    for j in range(1, mask.shape[1] - 1):
+                        mask2[i,j] = max([mask[i-1,j], mask[i,j], mask[i+1,j],
+                              mask[i-1,j-1], mask[i,j-1], mask[i+1,j-1],
+                              mask[i-1,j+1], mask[i,j+1], mask[i+1,j+1]])
+                mask = mask2
 
-            #mask = region_extract(mask.copy(), threshold_s=2000)
+            mask = region_extract(mask.copy(), threshold_s=2000)
 
             # for count in range(15):
             #     mask2 = np.zeros_like(mask)
@@ -144,10 +144,12 @@ def extractMask(video_id):
 def verifyMask(video_id, scene_id, expand):
     if expand == False:
         mask = np.load('./masks_refine_non_expand/mask_' + str(video_id) + '_' + str(scene_id) + '.npy')
+        cv2.imwrite('./mask_ne.png', mask * 255)
         plt.imshow(mask, cmap='gray')
         plt.show()
     else:
         mask = np.load('./masks_refine_v3/mask_' + str(video_id) + '_' + str(scene_id) + '.npy')
+        cv2.imwrite('./mask.png', mask * 255)
         plt.imshow(mask, cmap='gray')
         plt.show()
 
@@ -166,12 +168,14 @@ def expandMask(video_id, scene_id):
     np.save(mask_path, mask)
 
 if __name__== '__main__':
+    # extract mask
     # videos = [45, 61, 84, 89]
     # videos = [61, 45, 84]
-    videos = [78]
-    for c in videos:
-        extractMask(video_id = c)
+    # videos = [51]
+    # for c in videos:
+    #     extractMask(video_id = c)
 
-    #expandMask(video_id = 46, scene_id = 1)
+    # expandMask(video_id = 46, scene_id = 1)
 
-    verifyMask(video_id = 78, scene_id = 1, expand = False)
+    #visualize extracted masks
+    verifyMask(video_id = 51, scene_id = 1, expand = True)

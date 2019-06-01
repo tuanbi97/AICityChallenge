@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import colour
 import json
 
-#input detected bounding boxes
+#input detected bounding boxes (text file)
 #get result by function detect
 
 class DetectorDay:
