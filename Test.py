@@ -55,7 +55,7 @@ for video_id in range(1, 101):
         for frame_id in range(sl, sr):
             #print("Frame ID %d" % (frame_id))
             #if frame_id == 15: break
-            ave_im = Image.load(Config.data_path1 + '/average_image/' + str(video_id) + '/average' + str(frame_id) + '.jpg')
+            ave_im = Image.load(Config.data_path + '/average_image/' + str(video_id) + '/average' + str(frame_id) + '.jpg')
             boxes = detector.detect(video_id, frame_id)
             for box in boxes: box.applyMask(sceneMask)
 
