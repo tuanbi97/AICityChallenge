@@ -172,10 +172,11 @@ if __name__== '__main__':
     # videos = [45, 61, 84, 89]
     # videos = [61, 45, 84]
     # videos = [51]
+    # videos = [1, 12, 37]
     # for c in videos:
     #     extractMask(video_id = c)
 
     # expandMask(video_id = 46, scene_id = 1)
 
     #visualize extracted masks
-    verifyMask(video_id = 51, scene_id = 1, expand = True)
+    verifyMask(video_id = 37, scene_id = 1, expand = False)

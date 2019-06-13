@@ -63,3 +63,10 @@ class Image:
     def save(im, path):
         cv2.imwrite(path, im)
 
+    @staticmethod
+    def loadOrigin(video_id, frame_id):
+        video_path = Config.dataset_path + '/' + str(video_id) + '.mp4'
+        cap = cv2.VideoCapture(video_path)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_id * Config.fps)
+        success, frame = cap.read()
+        return frame

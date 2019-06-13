@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from Misc import BoundingBox, Image
 import Config
+import matplotlib.pyplot as plt
 
 class AnomalyEvent:
     def __init__(self, box, time, id):
@@ -192,21 +193,45 @@ class AnomalyDetector:
         currentConf = Image.calcFrameConfident(self.events)
         return ret, currentConf
 
-    def drawEvents(self, im):
+    def drawEvents(self, im, mask, video_id, frame_id):
         #print(self.events.keys())
+        event_im = np.array(im)
+        anomaly_im = np.array(im)
+        origin_im = Image.loadOrigin(video_id, frame_id)
+
         for key in self.events.keys():
             event = self.events[key]
-            if event.status == 0:
-                #draw proposal
-                im = cv2.rectangle(im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2),
-                                   (255, 153, 51), 3)
-                im = cv2.putText(im, "%d proposal" % (key), (event.region.x2 + 10, event.region.y1),
-                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 153, 51), 2, cv2.LINE_AA)
-            else:
-                if event.status == 1:
-                    im = cv2.rectangle(im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (255, 0, 0), 3)
-                    im = cv2.putText(im, "%d %.2f" % (key, event.region.score), (event.region.x2 + 10, event.region.y1),
-                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
-                    im = cv2.putText(im, "start: %.2f" % (event.start_time), (event.region.x1, event.region.y2 + 20),
-                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
-        return im
+            #draw proposal
+            roi = np.zeros([event.region.y2 - event.region.y1, event.region.x2 - event.region.x1, 3]).astype(np.uint8)
+            # print(np.shape(roi))
+            roi = cv2.rectangle(roi, (0, 0), (event.region.x2 - event.region.x1, event.region.y2 - event.region.y1),
+                              (255, 0, 0), -1)
+
+            # print(np.shape(roi), np.shape(event_im[event.region.y1: event.region.y2, event.region.x1: event.region.x2]))
+            # print(type(roi[0][0][0]), type(event_im[0][0][0]))
+            alpha = 0.4
+            event_im[event.region.y1: event.region.y2, event.region.x1: event.region.x2] = cv2.addWeighted(roi, alpha, event_im[event.region.y1: event.region.y2, event.region.x1: event.region.x2], 1 - alpha, 0)
+            # im = cv2.rectangle(im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2),
+            #                    (255, 153, 51), -1)
+            # im = cv2.putText(im, "%d proposal" % (key), (event.region.x2 + 10, event.region.y1),
+            #                  cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 153, 51), 2, cv2.LINE_AA)
+            if event.status == 1:
+                anomaly_im = cv2.rectangle(anomaly_im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (0, 255, 255), 3)
+                event_im = cv2.rectangle(event_im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (0, 255, 255), 3)
+                origin_im = cv2.rectangle(origin_im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (0, 255, 255), 3)
+                # im = cv2.putText(im, "%d %.2f" % (key, event.region.score), (event.region.x2 + 10, event.region.y1),
+                #                      cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+
+                #anomaly_im = cv2.putText(anomaly_im, "start: %.2f" % (event.start_time), (event.region.x1, event.region.y2 + 20),
+                #                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2, cv2.LINE_AA)
+
+        mask = np.array(mask, dtype=float)
+        mask = cv2.GaussianBlur(mask, (101, 101), 0)
+        mask = np.dstack((mask, mask, mask))
+
+        event2_im = np.array(event_im) * (1 - mask)
+        roi = np.zeros(np.shape(event2_im), dtype=float)
+        event2_im = cv2.addWeighted(event2_im, 0.3, roi, 0.7, 0)
+
+        event_im = (event_im * mask).astype(np.uint8)
+        return event_im, anomaly_im, (event2_im + event_im).astype(np.uint8), origin_im

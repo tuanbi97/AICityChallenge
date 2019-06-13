@@ -15,14 +15,16 @@ import ResultRefinement as rr
 #Initilize detector
 print('Parse detector result ...')
 dayNightDetector = DayNightDetector()
-detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt', Config.data_path + '/result_8_3_3_nclas.txt')
+detectorDay = DetectorDay(Config.data_path + '/result_8_3_3_clas.txt', Config.data_path + '/bresult_8_3_3_nclas.txt')
 detectorNight = DetectorNight(Config.data_path + '/extracted-bboxes-dark-videos')
 #evalFunc = Evaluation(Config.data_path + '/test_groundtruth.txt')
 anomalyDetector = AnomalyDetector()
 stableList = StableFrameList(Config.data_path + '/unchanged_scene_periods.json')
 maskList = MaskList(Config.data_path + '/masks_refine_v3')
 
-for video_id in range(1, 101):
+videos = [1, 12, 37, 51]
+
+for video_id in videos:
     print("Processing video ", video_id)
     detector = detectorDay
     if dayNightDetector.checkNight(video_id):
@@ -61,24 +63,27 @@ for video_id in range(1, 101):
 
             box_im = Image.addBoxes(ave_im, boxes)
 
-            if detector.name == 'night':
-                Image.save(box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/night_average' + format(frame_id, '03d') + '.jpg')
-
-                # save result day model to check if day model is better than night model
-                # day_boxes = detectorDay.detect(video_id, frame_id)
-                # for box in day_boxes: box.applyMask(sceneMask)
-                # day_box_im = Image.addBoxes(ave_im, day_boxes)
-                # Image.save(day_box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/day_average' + format(frame_id, '03d') + '.jpg')
-            else:
-                Image.save(box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/day_average' + format(frame_id, '03d') + '.jpg')
+            # if detector.name == 'night':
+            #     Image.save(box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/night_average' + format(frame_id, '03d') + '.jpg')
+            #
+            #     # save result day model to check if day model is better than night model
+            #     # day_boxes = detectorDay.detect(video_id, frame_id)
+            #     # for box in day_boxes: box.applyMask(sceneMask)
+            #     # day_box_im = Image.addBoxes(ave_im, day_boxes)
+            #     # Image.save(day_box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/day_average' + format(frame_id, '03d') + '.jpg')
+            # else:
+            #     Image.save(box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/day_average' + format(frame_id, '03d') + '.jpg')
 
             #detect anomaly event in scene
             anomalyDetector.addBoxes(boxes, frame_id) #input detected boxes => list of anomaly event
             detectedAnomalyEvents, conf = anomalyDetector.examineEvents(video_id, scene_id, frame_id, frame_id == sr - 1, f)
 
-            event_im = anomalyDetector.drawEvents(box_im)
+            event_im, anomaly_im, event2_im, origin_im = anomalyDetector.drawEvents(ave_im, sceneMask, video_id, frame_id)
 
-            Image.save(event_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/events' + format(frame_id, '03d') + '.jpg')
+            Image.save(event_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/events_' + format(frame_id, '03d') + '.jpg')
+            Image.save(event2_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/events2_' + format(frame_id, '03d') + '.jpg')
+            Image.save(anomaly_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/anomaly_wos' + format(frame_id, '03d') + '.jpg')
+            Image.save(origin_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/origin_' + format(frame_id, '03d') + '.jpg')
             confs[frame_id] = conf
 
     f.close()
