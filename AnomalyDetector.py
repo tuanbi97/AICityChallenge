@@ -216,9 +216,9 @@ class AnomalyDetector:
             # im = cv2.putText(im, "%d proposal" % (key), (event.region.x2 + 10, event.region.y1),
             #                  cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 153, 51), 2, cv2.LINE_AA)
             if event.status == 1:
-                anomaly_im = cv2.rectangle(anomaly_im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (0, 255, 255), 3)
-                event_im = cv2.rectangle(event_im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (0, 255, 255), 3)
-                origin_im = cv2.rectangle(origin_im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (0, 255, 255), 3)
+                anomaly_im = cv2.rectangle(anomaly_im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (0, 255, 255), 1)
+                event_im = cv2.rectangle(event_im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (0, 255, 255), 1)
+                origin_im = cv2.rectangle(origin_im, (event.region.x1, event.region.y1), (event.region.x2, event.region.y2), (0, 255, 255), 1)
                 # im = cv2.putText(im, "%d %.2f" % (key, event.region.score), (event.region.x2 + 10, event.region.y1),
                 #                      cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
 

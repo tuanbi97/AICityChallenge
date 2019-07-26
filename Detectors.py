@@ -35,11 +35,25 @@ class DetectorDay:
             result[video_id][frame_id] = []
             # print(video_id, frame_id)
             # print(split)
+            last_result = None
             for j in range(1, len(split) - 1, 5):
                 # print(split[j + 0], split[j + 1], split[j + 2], split[j + 3], split[j + 4])
-                box = BoundingBox(float(split[j + 0]), float(split[j + 1]), float(split[j + 2]), float(split[j + 3]),
-                                  float(split[j + 4]))
+                # offsetX = 370
+                # offsetY = -95
+                offsetX = 92
+                offsetY = -79
+                w = (float(split[j + 2]) - float(split[j + 0])) / 4.5
+                h = (float(split[j + 3]) - float(split[j + 1])) / 4.5
+                # box = BoundingBox(float(split[j + 0]), float(split[j + 1]), float(split[j + 2]), float(split[j + 3]),
+                #                   float(split[j + 4]))
+                box = BoundingBox(float(split[j + 0]) + offsetX, float(split[j + 1]) + offsetY,
+                                      float(split[j + 0]) + offsetX + w, float(split[j + 1]) + offsetY + h,
+                                      float(split[j + 4]))
+                last_result = box
                 result[video_id][frame_id].append(box)
+        #demo
+        # for i in range(frame_id, 891):
+        #     result[video_id][i] = [last_result]
 
         for i in result.keys():
             ave_imgs = os.listdir(Config.data_path + '/average_image/' + str(i))

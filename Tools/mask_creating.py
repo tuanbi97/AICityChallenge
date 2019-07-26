@@ -179,4 +179,4 @@ if __name__== '__main__':
     # expandMask(video_id = 46, scene_id = 1)
 
     #visualize extracted masks
-    verifyMask(video_id = 37, scene_id = 1, expand = False)
+    verifyMask(video_id = 20, scene_id = 1, expand = True)
